@@ -5,6 +5,6 @@ const (
 	PostMember    = "/member"
 	GetMemberList = "/member"
 	GetMember     = "/member/:id"
-	PutMember     = "/member"
+	PutMember     = "/member/:id"
 	DelMember     = "/member/:id"
 )

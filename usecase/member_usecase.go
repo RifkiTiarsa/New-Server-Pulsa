@@ -7,6 +7,7 @@ import (
 	"server-pulsa/entity"
 	"server-pulsa/repository"
 	"strconv"
+	"time"
 )
 
 type memberUsecase struct {
@@ -27,13 +28,19 @@ func (m *memberUsecase) generateRandomPin() (int, error) {
 }
 
 // Create implements MemberUsecase.
-func (m *memberUsecase) Create(payload *entity.Member) (entity.Member, error) {
+func (m *memberUsecase) Create(payload entity.Member) (entity.Member, error) {
+
 	payload.MemberID = m.generateMemberId()
 
 	payload.Balance = 0
 
 	pinInt, _ := m.generateRandomPin()
 	payload.Pin = strconv.Itoa(pinInt)
+
+	payload.CreatedAt = time.Now()
+	payload.UpdatedAt = time.Now()
+
+	fmt.Println(payload)
 
 	return m.repo.Create(payload)
 }
@@ -58,26 +65,29 @@ func (m *memberUsecase) FindAll() ([]entity.Member, error) {
 }
 
 // FindByID implements MemberUsecase.
-func (m *memberUsecase) FindByID(id int) (*entity.Member, error) {
+func (m *memberUsecase) FindByID(id int) (entity.Member, error) {
 	return m.repo.FindByID(id)
 }
 
 // Update implements MemberUsecase.
-func (m *memberUsecase) Update(payload *entity.Member) (entity.Member, error) {
-	data, err := m.repo.FindByID(payload.ID)
+func (m *memberUsecase) Update(payload entity.Member) (entity.Member, error) {
+	payload.UpdatedAt = time.Now()
+
+	_, err := m.repo.FindByID(payload.ID)
 	if err != nil {
 		return entity.Member{}, err
 	}
 
-	return m.repo.Update(data)
+	return m.repo.Update(payload)
+
 }
 
 type MemberUsecase interface {
-	Create(payload *entity.Member) (entity.Member, error)
+	Create(payload entity.Member) (entity.Member, error)
 	Delete(id int) error
 	FindAll() ([]entity.Member, error)
-	FindByID(id int) (*entity.Member, error)
-	Update(payload *entity.Member) (entity.Member, error)
+	FindByID(id int) (entity.Member, error)
+	Update(payload entity.Member) (entity.Member, error)
 }
 
 func NewMemberUsecase(repo repository.MemberRepository) MemberUsecase {

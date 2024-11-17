@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"fmt"
 	"server-pulsa/config"
 	"server-pulsa/entity"
 	"server-pulsa/shared/common"
 	"server-pulsa/usecase"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,8 +25,9 @@ func (m *memberController) createHandler(c *gin.Context) {
 		return
 	}
 
-	member, err := m.uc.Create(&payload)
+	member, err := m.uc.Create(payload)
 	if err != nil {
+		fmt.Println("error :", err)
 		common.SendErrorResponse(c, 500, err.Error())
 		return
 	}
@@ -41,6 +44,7 @@ func (m *memberController) getHandlerById(c *gin.Context) {
 
 	member, err := m.uc.FindByID(id)
 	if err != nil {
+		fmt.Println(err)
 		common.SendErrorResponse(c, 404, "Member not found")
 		return
 	}
@@ -59,6 +63,12 @@ func (m *memberController) getAllHandler(c *gin.Context) {
 }
 
 func (m *memberController) updateHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		common.SendErrorResponse(c, 400, "Invalid ID")
+		return
+	}
+
 	var payload entity.Member
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -66,12 +76,21 @@ func (m *memberController) updateHandler(c *gin.Context) {
 		return
 	}
 
-	member, err := m.uc.Update(&payload)
+	if strings.TrimSpace(payload.Name) == "" || strings.TrimSpace(payload.Phone) == "" || strings.TrimSpace(payload.Address) == "" {
+		common.SendErrorResponse(c, 400, "All fields are required. Please complete all the data before proceeding")
+		return
+	}
+
+	payload.ID = id
+
+	member, err := m.uc.Update(payload)
 	if err != nil {
+		fmt.Println(err)
 		common.SendErrorResponse(c, 500, err.Error())
 		return
 	}
 
+	fmt.Println(member)
 	common.SendSingleResponse(c, member, "Member updated successfully")
 }
 
@@ -96,7 +115,7 @@ func (m *memberController) Routes() {
 	m.rg.GET(config.GetMember, m.getHandlerById)
 	m.rg.GET(config.GetMemberList, m.getAllHandler)
 	m.rg.PUT(config.PutMember, m.updateHandler)
-	m.rg.DELETE(config.DeleteMember, m.deleteHandler)
+	m.rg.DELETE(config.DelMember, m.deleteHandler)
 }
 
 func NewMemberController(uc usecase.MemberUsecase, rg *gin.RouterGroup) *memberController {
