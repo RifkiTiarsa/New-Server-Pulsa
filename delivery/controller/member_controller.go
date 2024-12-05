@@ -25,6 +25,11 @@ func (m *memberController) createHandler(c *gin.Context) {
 		return
 	}
 
+	if strings.TrimSpace(payload.Name) == "" || strings.TrimSpace(payload.Phone) == "" || strings.TrimSpace(payload.Address) == "" {
+		common.SendErrorResponse(c, 400, "All fields are required. Please complete all the data before proceeding")
+		return
+	}
+
 	member, err := m.uc.Create(payload)
 	if err != nil {
 		fmt.Println("error :", err)
@@ -110,10 +115,27 @@ func (m *memberController) deleteHandler(c *gin.Context) {
 	common.SendSingleResponse(c, nil, "Member deleted successfully")
 }
 
+func (m *memberController) checkBalanceMemberHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		common.SendErrorResponse(c, 400, "Invalid ID")
+		return
+	}
+
+	member, err := m.uc.FindByID(id)
+	if err != nil {
+		common.SendErrorResponse(c, 500, err.Error())
+		return
+	}
+
+	common.CheckBalanceMemberResponse(c, member)
+}
+
 func (m *memberController) Routes() {
 	m.rg.POST(config.PostMember, m.createHandler)
 	m.rg.GET(config.GetMember, m.getHandlerById)
 	m.rg.GET(config.GetMemberList, m.getAllHandler)
+	m.rg.GET(config.GetMemberBalance, m.checkBalanceMemberHandler)
 	m.rg.PUT(config.PutMember, m.updateHandler)
 	m.rg.DELETE(config.DelMember, m.deleteHandler)
 }

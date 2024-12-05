@@ -1,7 +1,9 @@
 package common
 
 import (
+	"fmt"
 	"net/http"
+	"server-pulsa/entity"
 	"server-pulsa/shared/model"
 
 	"github.com/gin-gonic/gin"
@@ -31,5 +33,15 @@ func SendSingleResponse(ctx *gin.Context, data interface{}, message string) {
 			Message: message,
 		},
 		Data: data,
+	})
+}
+
+func CheckBalanceMemberResponse(c *gin.Context, data entity.Member) {
+	c.JSON(http.StatusOK, &model.SingleResponse{
+		Status: model.Status{
+			Code:    http.StatusOK,
+			Message: "OK",
+		},
+		Data: fmt.Sprintf("YTH %s %s Saldo anda: %.2f @%s", data.Name, data.MemberID, data.Balance, data.UpdatedAt),
 	})
 }

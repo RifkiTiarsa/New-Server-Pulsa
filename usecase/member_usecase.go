@@ -14,6 +14,11 @@ type memberUsecase struct {
 	repo repository.MemberRepository
 }
 
+// CheckBalanceMember implements MemberUsecase.
+// func (m *memberUsecase) CheckBalanceMember(id int) (float64, error) {
+// 	return m.repo.CheckBalanceMember(id)
+// }
+
 func (m *memberUsecase) generateMemberId() string {
 	n, _ := rand.Int(rand.Reader, big.NewInt(99999))
 	return fmt.Sprintf("SP%05d", n.Int64())
@@ -39,8 +44,6 @@ func (m *memberUsecase) Create(payload entity.Member) (entity.Member, error) {
 
 	payload.CreatedAt = time.Now()
 	payload.UpdatedAt = time.Now()
-
-	fmt.Println(payload)
 
 	return m.repo.Create(payload)
 }
